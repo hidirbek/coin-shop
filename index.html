@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TLS COIN SHOP</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="icon" href="./img/favicon.ico" type="image/x-icon" />
+  </head>
+
+  <body class="main_body">
+    <header class="main_header">
+      <div class="header_logo-wrapper">
+        <img src="./img/TLS.png" alt="" />
+      </div>
+      <div class="header_nav">
+        <div>
+          <a href="./pages/cart.html" class="cart_link">
+            🛒 Корзина <span class="cart_badge" id="cartCount">0</span>
+          </a>
+        </div>
+        <div class="user_info">
+          <div class="user_img">
+            <img src="./img/user.png" alt="" />
+          </div>
+          <p class="username">Name <br />surname</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="site_main">
+      <ul class="card_list">
+        <!-- 1 -->
+        <li class="card_item">
+          <div class="card_img-wrapper">
+            <img class="card_image" src="./img/hoodie.png" alt="" width="130" />
+          </div>
+          <div class="card_info">
+            <h4 class="card_title">Худи с логотипом</h4>
+            <p class="card_price">Цена: <b>100</b> coin</p>
+            <button
+              class="add_cart-btn"
+              data-title="Худи с логотипом"
+              data-price="100"
+            >
+              Добавить в корзину
+            </button>
+          </div>
+        </li>
+
+        <!-- 2 -->
+        <li class="card_item">
+          <div class="card_img-wrapper">
+            <img class="card_image" src="./img/cup.png" alt="" width="130" />
+          </div>
+          <div class="card_info">
+            <h4 class="card_title">Бокал с логотипом</h4>
+            <p class="card_price">Цена: <b>75</b> coin</p>
+            <button
+              class="add_cart-btn"
+              data-title="Бокал с логотипом"
+              data-price="75"
+            >
+              Добавить в корзину
+            </button>
+          </div>
+        </li>
+
+        <!-- 3 -->
+        <li class="card_item">
+          <div class="card_img-wrapper">
+            <img class="card_image" src="./img/bag.png" alt="" width="130" />
+          </div>
+          <div class="card_info">
+            <h4 class="card_title">Портфель с логотипом</h4>
+            <p class="card_price">Цена: <b>115</b> coin</p>
+            <button
+              class="add_cart-btn"
+              data-title="Портфель с логотипом"
+              data-price="115"
+            >
+              Добавить в корзину
+            </button>
+          </div>
+        </li>
+      </ul>
+    </main>
+
+    <!-- JS -->
+    <script>
+      function loadCart() {
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+        // fix old items (without qty)
+        let changed = false;
+        cart.forEach((item) => {
+          if (typeof item.qty !== "number") {
+            item.qty = 1;
+            changed = true;
+          }
+        });
+        if (changed) localStorage.setItem("cart", JSON.stringify(cart));
+
+        return cart;
+      }
+
+      function saveCart(cart) {
+        localStorage.setItem("cart", JSON.stringify(cart));
+      }
+
+      function updateCartCount() {
+        const cart = loadCart();
+        const totalQty = cart.reduce((sum, item) => sum + (item.qty || 0), 0);
+        const el = document.getElementById("cartCount");
+        if (el) el.textContent = totalQty;
+      }
+
+      function findItem(cart, title) {
+        return cart.find((item) => item.title === title);
+      }
+
+      function getImageFilenameFromCard(btn) {
+        const card = btn.closest(".card_item");
+        const src = card.querySelector(".card_image").getAttribute("src"); // "./img/hoodie.png"
+        const clean = src.split("?")[0]; // just in case
+        return clean.split("/").pop(); // "hoodie.png"
+      }
+
+      function renderButton(btn) {
+        const title = btn.dataset.title;
+        const cart = loadCart();
+        const item = findItem(cart, title);
+
+        if (!item) {
+          btn.innerHTML = "Добавить в корзину";
+          return;
+        }
+
+        btn.innerHTML = `
+      <button class="qty_btn minus" type="button">−</button>
+      <span class="qty_value">${item.qty}</span>
+      <button class="qty_btn plus" type="button">+</button>
+    `;
+
+        btn.querySelector(".plus").onclick = (e) => {
+          e.stopPropagation();
+          item.qty++;
+          saveCart(cart);
+          renderButton(btn);
+          updateCartCount();
+        };
+
+        btn.querySelector(".minus").onclick = (e) => {
+          e.stopPropagation();
+          item.qty--;
+          if (item.qty <= 0) cart.splice(cart.indexOf(item), 1);
+          saveCart(cart);
+          renderButton(btn);
+          updateCartCount();
+        };
+      }
+
+      updateCartCount();
+
+      document.querySelectorAll(".add_cart-btn").forEach((btn) => {
+        const title = btn.dataset.title;
+        const price = Number(btn.dataset.price);
+        const imgFile = getImageFilenameFromCard(btn); // <- "hoodie.png"
+
+        renderButton(btn);
+
+        btn.addEventListener("click", () => {
+          const cart = loadCart();
+          let item = findItem(cart, title);
+
+          if (!item) {
+            cart.push({ title, price, qty: 1, imgFile }); // <- сохраняем только имя файла
+            saveCart(cart);
+            renderButton(btn);
+            updateCartCount();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

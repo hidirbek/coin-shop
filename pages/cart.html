@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TLS COIN SHOP — Cart</title>
+    <link rel="stylesheet" href="../css/cart.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="icon" href="./img/favicon.ico" type="image/x-icon" />
+  </head>
+
+  <body class="main_body">
+    <header class="main_header">
+      <div class="header_logo-wrapper">
+        <img src="../img/TLS.png" alt="" />
+      </div>
+      <div class="header_nav">
+        <div class="user_info">
+          <div class="user_img">
+            <img src="./img/user.png" alt="" />
+          </div>
+          <p class="username">Name <br />surname</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="site_main">
+      <div class="header_nav">
+        <a href="/index.html" class="cart_link"> ⬅ Назад </a>
+      </div>
+      <section class="cart_page">
+        <h2 class="cart_title">Корзина</h2>
+
+        <ul class="cart_list" id="cartList"></ul>
+
+        <div class="cart_summary">
+          <div class="cart_summary_row">
+            <span class="cart_total_label">Итого</span>
+            <span class="cart_total_value">
+              <span id="total">0</span> coin
+            </span>
+          </div>
+
+          <button class="btn" id="clearCartBtn">Очистить корзину</button>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      function loadCart() {
+        return JSON.parse(localStorage.getItem("cart")) || [];
+      }
+
+      function saveCart(cart) {
+        localStorage.setItem("cart", JSON.stringify(cart));
+      }
+
+      function updateCartCount() {
+        const cart = loadCart();
+        const totalQty = cart.reduce((sum, item) => sum + (item.qty || 0), 0);
+        const el = document.getElementById("cartCount");
+        if (el) el.textContent = totalQty;
+      }
+
+      function renderCart() {
+        const cart = loadCart();
+        const list = document.getElementById("cartList");
+        const totalEl = document.getElementById("total");
+
+        list.innerHTML = "";
+
+        if (cart.length === 0) {
+          list.innerHTML = `<li class="cart_empty">Корзина пуста</li>`;
+          totalEl.textContent = "0";
+          updateCartCount();
+          return;
+        }
+
+        let total = 0;
+
+        cart.forEach((item, index) => {
+          const qty = Number(item.qty) || 0;
+          const price = Number(item.price) || 0;
+          total += price * qty;
+
+          const li = document.createElement("li");
+          li.className = "cart_item_row";
+          li.innerHTML = `
+        <img class="cart_item_img" src="../img/${item.imgFile}" alt="" />
+
+        <div class="cart_item_info">
+          <p class="cart_item_name">${item.title}</p>
+          <p class="cart_item_price">${price} coin × ${qty}</p>
+        </div>
+
+        <div class="qty_controls">
+          <button class="qty_btn minus" type="button" data-index="${index}">−</button>
+          <span class="qty_value">${qty}</span>
+          <button class="qty_btn plus" type="button" data-index="${index}">+</button>
+        </div>
+      `;
+
+          list.appendChild(li);
+        });
+
+        totalEl.textContent = total;
+        updateCartCount();
+
+        list.querySelectorAll(".plus").forEach((btn) => {
+          btn.onclick = () => {
+            const i = Number(btn.dataset.index);
+            const cart = loadCart();
+            cart[i].qty = (Number(cart[i].qty) || 0) + 1;
+            saveCart(cart);
+            renderCart();
+          };
+        });
+
+        list.querySelectorAll(".minus").forEach((btn) => {
+          btn.onclick = () => {
+            const i = Number(btn.dataset.index);
+            const cart = loadCart();
+            cart[i].qty = (Number(cart[i].qty) || 0) - 1;
+            if (cart[i].qty <= 0) cart.splice(i, 1);
+            saveCart(cart);
+            renderCart();
+          };
+        });
+      }
+
+      document.getElementById("clearCartBtn")?.addEventListener("click", () => {
+        localStorage.removeItem("cart");
+        renderCart();
+      });
+
+      renderCart();
+    </script>
+  </body>
+</html>

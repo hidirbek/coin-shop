@@ -1,0 +1,21 @@
+.cart_item_row {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.cart_item_img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 6px;
+}
+
+.cart_item_info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
